@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import os
+import platform
 import random
 import re
 from pathlib import Path
@@ -20,8 +21,41 @@ from moviepy.video.fx import Crop, Loop
 
 load_dotenv()
 
+
+def default_font_path() -> str:
+    # OSごとに標準で入っている日本語フォントを探す。
+    # (.envのFONT_PATHが他OS向けのパスで無効な場合のフォールバックにも使う)
+    system = platform.system()
+    if system == "Windows":
+        candidates = ["C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/YuGothM.ttc"]
+    elif system == "Darwin":
+        candidates = [
+            "/System/Library/Fonts/PingFang.ttc",
+            "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
+            "/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc",
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        ]
+    else:
+        candidates = [
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJKjp-Regular.otf",
+        ]
+    for c in candidates:
+        if Path(c).exists():
+            return c
+    return candidates[0]
+
+
+def resolve_font_path() -> str:
+    env_path = os.getenv("FONT_PATH", "").strip()
+    if env_path and Path(env_path).exists():
+        return env_path
+    return default_font_path()
+
+
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
-FONT_PATH = os.getenv("FONT_PATH", "C:/Windows/Fonts/meiryo.ttc")
+FONT_PATH = resolve_font_path()
 OUTPUT_WIDTH = int(os.getenv("OUTPUT_WIDTH", "1080"))
 OUTPUT_HEIGHT = int(os.getenv("OUTPUT_HEIGHT", "1920"))
 FPS = int(os.getenv("FPS", "30"))

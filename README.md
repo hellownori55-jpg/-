@@ -12,7 +12,11 @@
 ## 必要なもの
 
 - Python 3.10以上
+  - Windows: [python.org](https://www.python.org/downloads/)からインストール(「Add python.exe to PATH」にチェック)
+  - Mac: 標準では入っていないので、[python.org](https://www.python.org/downloads/macos/)または`brew install python`でインストール
 - [Pexels API キー](https://www.pexels.com/api/)(無料で取得できます)
+
+字幕フォントはOS標準の日本語フォントを自動選択するので、Windows/Mac共通でそのまま使えます。
 
 ## セットアップ(Windows)
 
@@ -29,6 +33,24 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 python server.py
+```
+
+## セットアップ(Mac)
+
+1. このリポジトリをダウンロード(またはクローン)する
+2. `.env.example` を `.env` にコピーし、`PEXELS_API_KEY` に取得したキーを貼り付ける
+3. `start_server.command` をダブルクリックする
+   - 「開発元を確認できないため開けません」と出た場合は、Finderで右クリック→「開く」を選ぶと実行できます(初回のみ)
+   - 初回は自動で仮想環境の作成・パッケージのインストールが行われます
+   - しばらくするとブラウザで `http://127.0.0.1:5000` が自動的に開きます
+
+`start_server.command` を使わない場合は、ターミナルで手動で以下を実行してください。
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 server.py
 ```
 
 ## 使い方
@@ -61,12 +83,14 @@ python server.py
 python main.py script_sample.txt output.mp4 --mouse-image "ネズミ画像/S__372113410.jpg"
 ```
 
+(Macでは `python3` と読み替えてください)
+
 ## 設定(.env)
 
 | 変数 | 説明 | 既定値 |
 |---|---|---|
 | `PEXELS_API_KEY` | Pexels APIキー(必須) | - |
-| `FONT_PATH` | 字幕フォントのパス | `C:/Windows/Fonts/meiryo.ttc` |
+| `FONT_PATH` | 字幕フォントのパス。空欄ならOSごとに標準の日本語フォントを自動選択 | (自動) |
 | `OUTPUT_WIDTH` / `OUTPUT_HEIGHT` | 出力解像度 | 1080 / 1920 |
 | `FPS` | フレームレート | 30 |
 | `CHARS_PER_SECOND` | 字幕1文字あたりの表示速度 | 6 |

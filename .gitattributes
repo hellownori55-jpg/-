@@ -1,0 +1,6 @@
+# Mac/Linuxで実行するシェルスクリプトはLF固定(CRLFだと実行できないため)
+*.command text eol=lf
+*.sh text eol=lf
+
+# Windows専用バッチファイルはCRLF固定
+*.bat text eol=crlf

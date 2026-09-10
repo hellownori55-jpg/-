@@ -1,0 +1,6 @@
+requests
+python-dotenv
+moviepy>=2.0
+Pillow>=12.2.0
+numpy
+flask

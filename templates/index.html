@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ショート動画自動生成</title>
+<style>
+  body {
+    font-family: "Meiryo", "Hiragino Sans", sans-serif;
+    background: #f4f4f6;
+    color: #222;
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.desc { color: #666; margin-top: 0; }
+  section {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  h2 { font-size: 16px; margin-top: 0; }
+  .images {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .image-choice {
+    cursor: pointer;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    padding: 4px;
+    text-align: center;
+  }
+  .image-choice img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+  }
+  .image-choice.selected {
+    border-color: #4a7cff;
+    background: #eaf0ff;
+  }
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 220px;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: vertical;
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background: #4a7cff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:disabled { background: #aab8e0; cursor: not-allowed; }
+  #status {
+    margin-top: 16px;
+    font-size: 14px;
+    white-space: pre-wrap;
+  }
+  #status.error { color: #c0392b; }
+  #result video {
+    width: 100%;
+    max-width: 360px;
+    display: block;
+    margin: 16px auto 0;
+    border-radius: 8px;
+  }
+  #result { text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>ショート動画自動生成</h1>
+<p class="desc">ネズミ画像を選んで、台本を書いて、ボタンを押すだけ。</p>
+
+<form id="generate-form">
+  <section>
+    <h2>① ネズミ画像を選ぶ</h2>
+    <div class="images">
+      {% for image in images %}
+      <label class="image-choice" data-filename="{{ image }}">
+        <img src="{{ url_for('mouse_image', filename=image) }}" alt="{{ image }}">
+        <input type="radio" name="mouse_image" value="{{ image }}" style="display:none">
+      </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>② 台本を書く</h2>
+    <textarea name="script_text" placeholder="ここに台本を入力してください"></textarea>
+  </section>
+
+  <section>
+    <button type="submit" id="generate-btn">動画を作成</button>
+    <div id="status"></div>
+    <div id="result"></div>
+  </section>
+</form>
+
+<script>
+const form = document.getElementById("generate-form");
+const btn = document.getElementById("generate-btn");
+const status = document.getElementById("status");
+const result = document.getElementById("result");
+
+document.querySelectorAll(".image-choice").forEach((label) => {
+  label.addEventListener("click", () => {
+    document.querySelectorAll(".image-choice").forEach((el) => el.classList.remove("selected"));
+    label.classList.add("selected");
+    label.querySelector("input").checked = true;
+  });
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  status.className = "";
+  status.textContent = "生成中...(映像のダウンロードと書き出しに数十秒〜数分かかります)";
+  result.innerHTML = "";
+  btn.disabled = true;
+
+  try {
+    const formData = new FormData(form);
+    const res = await fetch("/generate", { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "生成に失敗しました。");
+    }
+
+    status.textContent = "完成しました！";
+    result.innerHTML = `
+      <video controls src="${data.video_url}"></video>
+      <p><a href="${data.video_url}" download>動画をダウンロード</a></p>
+    `;
+  } catch (err) {
+    status.className = "error";
+    status.textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

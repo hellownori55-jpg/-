@@ -1,0 +1,16 @@
+# 環境設定(APIキーなど、各自で作成する)
+.env
+
+# 仮想環境
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# 生成物・ダウンロードキャッシュ(容量が大きいためコミットしない)
+work/
+output/
+*.mp4
+*.timeline.txt

@@ -144,10 +144,32 @@ form.addEventListener("submit", async (e) => {
       throw new Error(data.error || "生成に失敗しました。");
     }
 
+    // 生成は裏側で進むので、完了するまで数秒おきに様子を確認する。
+    // (1本の通信で待たせ続けると、ネットワーク環境によっては
+    //  途中で切断されFailed to fetchになることがあるため)
+    const jobId = data.job_id;
+    let jobResult;
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const statusRes = await fetch(`/status/${jobId}`);
+      const statusData = await statusRes.json();
+      if (!statusRes.ok) {
+        throw new Error(statusData.error || "状態確認に失敗しました。");
+      }
+      if (statusData.status === "done") {
+        jobResult = statusData;
+        break;
+      }
+      if (statusData.status === "error") {
+        throw new Error(statusData.error || "生成に失敗しました。");
+      }
+      // "running"ならそのまま待つ
+    }
+
     status.textContent = "完成しました！";
     result.innerHTML = `
-      <video controls src="${data.video_url}"></video>
-      <p><a href="${data.video_url}" download>動画をダウンロード</a></p>
+      <video controls src="${jobResult.video_url}"></video>
+      <p><a href="${jobResult.video_url}" download>動画をダウンロード</a></p>
     `;
   } catch (err) {
     status.className = "error";

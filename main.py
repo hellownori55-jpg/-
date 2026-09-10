@@ -5,8 +5,10 @@ import random
 import re
 from pathlib import Path
 
+import numpy as np
 import requests
 from dotenv import load_dotenv
+from PIL import Image
 from moviepy import (
     CompositeVideoClip,
     ImageClip,
@@ -183,9 +185,23 @@ def build_caption_clip(text: str, start: float, duration: float):
     return caption.with_start(start).with_duration(duration).with_position(("center", y))
 
 
+def remove_white_background(image_path: Path, white_threshold: int = 248) -> np.ndarray:
+    """白背景のネズミ画像を読み込み、白背景を透過させたRGBA配列を返す。
+
+    ピクセルのR/G/Bの最小値が white_threshold 以下なら不透明、
+    255(純白)なら完全透明、その間は線形補間でなめらかに透過させる
+    (輪郭のギザギザやハロを防ぐため)。
+    """
+    rgb = np.array(Image.open(image_path).convert("RGB")).astype(np.float32)
+    min_channel = rgb.min(axis=2)
+    alpha = np.clip((255.0 - min_channel) / (255.0 - white_threshold), 0.0, 1.0) * 255.0
+    return np.dstack([rgb, alpha]).astype(np.uint8)
+
+
 def build_mouse_overlay_clip(image_path: Path, total_duration: float):
-    # 動画の下部中央に、選択したネズミ画像を最初から最後まで常時表示する。
-    img = ImageClip(str(image_path))
+    # 動画の下部中央に、選択したネズミ画像(白背景を透過)を最初から最後まで常時表示する。
+    rgba = remove_white_background(image_path)
+    img = ImageClip(rgba)
     target_width = int(OUTPUT_WIDTH * 0.35)
     img = img.resized(width=target_width)
     margin_bottom = 40

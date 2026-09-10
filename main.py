@@ -299,7 +299,10 @@ def render_video(segments, output_path: Path, mouse_image_path: Path = None, pro
     layers = [video_track, *caption_clips]
     if mouse_image_path:
         layers.append(build_mouse_overlay_clip(mouse_image_path, timeline))
-    final = CompositeVideoClip(layers, size=(OUTPUT_WIDTH, OUTPUT_HEIGHT))
+    # bg_colorを指定しないとCompositeVideoClipが透明合成扱いになり、
+    # 書き出し時にlibx264が扱えない(環境によっては再生できない)yuva420pに
+    # なってしまうため、不透明な黒背景を明示して通常のyuv420pで書き出す。
+    final = CompositeVideoClip(layers, size=(OUTPUT_WIDTH, OUTPUT_HEIGHT), bg_color=(0, 0, 0))
 
     final.write_videofile(str(output_path), fps=FPS, codec="libx264")
 

@@ -202,11 +202,9 @@ def build_caption_clip(text: str, start: float, duration: float):
         font_size=64,
         color="white",
         stroke_color="black",
-        stroke_width=2,
+        stroke_width=8,  # 白文字+黒ふちをはっきりさせる
         method="caption",
         text_align="center",
-        bg_color=(0, 0, 0, 160),  # 文字全体を囲む半透明の黒背景(囲い文字)
-        margin=(24, 16),  # 背景ボックスの余白
     )
     # moviepyのcaption自動高さ計算は複数行テキストで実際より低く見積もり、
     # 最下行が描画時に欠けることがあるため、余裕を持たせた高さで再生成する。

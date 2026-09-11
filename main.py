@@ -205,6 +205,8 @@ def build_caption_clip(text: str, start: float, duration: float):
         stroke_width=2,
         method="caption",
         text_align="center",
+        bg_color=(0, 0, 0, 160),  # 文字全体を囲む半透明の黒背景(囲い文字)
+        margin=(24, 16),  # 背景ボックスの余白
     )
     # moviepyのcaption自動高さ計算は複数行テキストで実際より低く見積もり、
     # 最下行が描画時に欠けることがあるため、余裕を持たせた高さで再生成する。
@@ -213,7 +215,7 @@ def build_caption_clip(text: str, start: float, duration: float):
     probe.close()
     caption = TextClip(size=(caption_width, safe_height), **caption_kwargs)
 
-    center_y = OUTPUT_HEIGHT * 0.22
+    center_y = OUTPUT_HEIGHT * 0.42
     y = center_y - caption.h / 2
     y = max(OUTPUT_HEIGHT * 0.08, min(y, OUTPUT_HEIGHT - caption.h - 80))
     return caption.with_start(start).with_duration(duration).with_position(("center", y))
@@ -233,14 +235,15 @@ def remove_white_background(image_path: Path, white_threshold: int = 248) -> np.
 
 
 def build_mouse_overlay_clip(image_path: Path, total_duration: float):
-    # 動画の下部中央に、選択したネズミ画像(白背景を透過)を最初から最後まで常時表示する。
+    # 動画の左下に、選択したネズミ画像(白背景を透過)を最初から最後まで常時表示する。
     rgba = remove_white_background(image_path)
     img = ImageClip(rgba)
     target_width = int(OUTPUT_WIDTH * 0.35)
     img = img.resized(width=target_width)
     margin_bottom = 40
+    margin_left = 20
     y = OUTPUT_HEIGHT - img.h - margin_bottom
-    return img.with_duration(total_duration).with_position(("center", y))
+    return img.with_duration(total_duration).with_position((margin_left, y))
 
 
 def format_timestamp(seconds: float) -> str:
